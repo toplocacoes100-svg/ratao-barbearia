@@ -1,0 +1,79 @@
+rules_version = '2';
+
+// Regras de segurança por perfil: cliente, barbeiro e administrador (dono).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function me() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function isAdmin() { return signedIn() && me().role == 'admin'; }
+    function isBarber() { return signedIn() && me().role == 'barber'; }
+    function isStaff() { return isAdmin() || isBarber(); }
+    function myBarber() { return me().barberId; }
+
+    // Perfis de usuário. Todo mundo nasce "client"; só o dono promove alguém.
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.role == 'client'
+        && request.resource.data.keys().hasOnly(['name', 'email', 'phone', 'role', 'createdAt']);
+      allow update: if signedIn() && (
+        isAdmin() ||
+        (request.auth.uid == uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'phone']))
+      );
+      allow delete: if false;
+    }
+
+    // Catálogo: qualquer pessoa vê; só o dono altera.
+    match /settings/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /barbers/{id}  { allow read: if true; allow write: if isAdmin(); }
+    match /services/{id} { allow read: if true; allow write: if isAdmin(); }
+
+    // Agendamentos: o cliente vê e cancela os seus; o barbeiro vê os dele; o dono vê tudo.
+    match /appointments/{id} {
+      allow read: if signedIn() && (
+        isAdmin() ||
+        (isBarber() && resource.data.barberId == myBarber()) ||
+        resource.data.clientId == request.auth.uid
+      );
+      allow create: if signedIn() && (
+        isAdmin() ||
+        (isBarber() && request.resource.data.barberId == myBarber()) ||
+        (request.resource.data.clientId == request.auth.uid
+          && request.resource.data.createdBy == request.auth.uid
+          && request.resource.data.status == 'agendado')
+      );
+      allow update: if signedIn() && (
+        isAdmin() ||
+        (isBarber() && resource.data.barberId == myBarber()) ||
+        (resource.data.clientId == request.auth.uid
+          && request.resource.data.status == 'cancelado'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'late', 'cancelledAt']))
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Mapa de horários ocupados por barbeiro/dia. Não tem dados pessoais,
+    // por isso todo usuário logado pode ler (é o que permite mostrar só horários livres).
+    match /days/{id} {
+      allow read: if signedIn();
+      allow create, update: if signedIn()
+        && request.resource.data.keys().hasOnly(['barberId', 'date', 'items'])
+        && request.resource.data.items.size() <= 80;
+    }
+
+    // Bloqueios de horário (almoço extra, folga, atestado).
+    match /blocks/{id} {
+      allow read: if isAdmin() || (isBarber() && resource.data.barberId == myBarber());
+      allow create: if isAdmin() || (isBarber() && request.resource.data.barberId == myBarber());
+      allow update, delete: if isAdmin() || (isBarber() && resource.data.barberId == myBarber());
+    }
+
+    // Registro de ações sensíveis: qualquer um grava o seu, só o dono lê.
+    match /logs/{id} {
+      allow read: if isAdmin();
+      allow create: if signedIn() && request.resource.data.by == request.auth.uid;
+    }
+  }
+}
