@@ -13,6 +13,10 @@ import Profile from './pages/client/Profile.jsx';
 import StaffLayout from './pages/staff/StaffLayout.jsx';
 import Agenda from './pages/staff/Agenda.jsx';
 import Team from './pages/staff/Team.jsx';
+import Settings from './pages/staff/Settings.jsx';
+import Barbers from './pages/staff/Barbers.jsx';
+import Services from './pages/staff/Services.jsx';
+import Finance from './pages/staff/Finance.jsx';
 
 // Bloqueia quem não está logado ou não tem o perfil exigido
 function Guard({ roles }) {
@@ -72,6 +76,10 @@ export default function App() {
                   <Route path="agenda" element={<Agenda />} />
                   <Route element={<Guard roles={['admin']} />}>
                     <Route path="equipe" element={<Team />} />
+                    <Route path="financeiro" element={<Finance />} />
+                    <Route path="servicos" element={<Services />} />
+                    <Route path="barbeiros" element={<Barbers />} />
+                    <Route path="configuracoes" element={<Settings />} />
                   </Route>
                 </Route>
               </Route>

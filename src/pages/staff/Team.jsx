@@ -34,12 +34,12 @@ export default function Team() {
 
   return (
     <>
-      <div className="head-row"><div><h1>Equipe e acessos</h1><p className="fine">Defina quem é barbeiro ou dono. Todo mundo que cria conta começa como cliente.</p></div></div>
+      <div className="head-row"><div><h1>Acessos</h1><p className="fine">Defina quem é barbeiro ou dono. Todo mundo que cria conta começa como cliente.</p></div></div>
 
       {ready && (allBarbers.length === 0 || services.length === 0) && (
         <section className="panel">
           <h3>Primeiros passos</h3>
-          <p style={{ marginBottom: 12 }}>A agenda ainda está vazia. Carregue 3 barbeiros e 9 serviços de exemplo para testar. Depois você troca pelos dados reais.</p>
+          <p style={{ marginBottom: 12 }}>A agenda ainda está vazia. Carregue 3 barbeiros e 9 serviços de exemplo para testar. Depois você troca pelos dados reais nas abas Barbeiros e Serviços.</p>
           <button className="btn" onClick={load} disabled={busy}>{busy ? 'Carregando...' : 'Carregar dados de exemplo'}</button>
         </section>
       )}
@@ -72,7 +72,7 @@ export default function Team() {
           </tbody>
         </table>
       </div>
-      <p className="fine">Para dar acesso a um barbeiro: ele cria a conta pelo link do app, você troca o perfil dele para "Barbeiro" e escolhe qual barbeiro ele é.</p>
+      <div className="infobox"><b>O que é "barbeiro vinculado"?</b> É a ligação entre o <u>login</u> de uma pessoa e o <u>barbeiro</u> que aparece na agenda. Se o Bruno cria a conta dele e você o vincula ao barbeiro "Bruno Vaz", quando ele entrar vai ver só a agenda do Bruno. Para cadastrar ou excluir barbeiros da agenda, use a aba <b>Barbeiros</b>.</div>
     </>
   );
 }

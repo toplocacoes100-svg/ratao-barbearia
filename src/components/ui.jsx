@@ -39,9 +39,9 @@ export const Pill = ({ status }) => (
   <span className="pill" style={{ '--c': `var(${STATUS[status].v})` }}>{STATUS[status].label}</span>
 );
 
-export const Avatar = ({ barber, size = 54 }) => (
-  <span className="avatar" style={{ background: barber.color, '--c': barber.color, width: size, height: size, fontSize: size * 0.48 }}>{(barber.short || barber.name)[0]}</span>
-);
+export const Avatar = ({ barber, size = 54 }) => (barber.photo
+  ? <img className="avatar photo" src={barber.photo} alt="" style={{ '--c': barber.color, width: size, height: size }} />
+  : <span className="avatar" style={{ background: barber.color, '--c': barber.color, width: size, height: size, fontSize: size * 0.48 }}>{(barber.short || barber.name)[0]}</span>);
 
 export function Ticket({ ap, extra }) {
   return (

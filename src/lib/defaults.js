@@ -1,4 +1,5 @@
-// Horários em minutos desde a meia-noite (540 = 09:00). Domingo (0) fechado.
+// Horários em minutos desde a meia-noite (540 = 09:00). 0 = domingo ... 6 = sábado.
+// Um dia sem horário (null) fica fechado. O dono edita tudo em Configurações.
 export const DEFAULT_SETTINGS = {
   name: 'Barbearia do Ratão',
   buffer: 5,        // intervalo entre atendimentos (min)
@@ -6,6 +7,7 @@ export const DEFAULT_SETTINGS = {
   cancelMin: 120,   // antecedência mínima para cancelar sem ocorrência (min)
   step: 30,         // de quanto em quanto tempo os horários são oferecidos (min)
   hours: {
+    0: { open: 540, close: 840 },
     1: { open: 540, close: 1140 },
     2: { open: 540, close: 1140 },
     3: { open: 540, close: 1140 },
@@ -33,4 +35,4 @@ export const SEED_SERVICES = [
   { id: 'pigmentacao', name: 'Pigmentação', cat: 'Tratamento', price: 40, dur: 40, barberIds: ['caio', 'bruno'], active: true },
   { id: 'hidratacao', name: 'Hidratação', cat: 'Tratamento', price: 30, dur: 30, barberIds: ALL, active: true },
 ];
-export const CATS = ['Combo', 'Cabelo', 'Barba', 'Acabamento', 'Tratamento'];
+export const CATS = ['Combo', 'Cabelo', 'Barba', 'Acabamento', 'Tratamento', 'Outros'];

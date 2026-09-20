@@ -6,7 +6,8 @@ import { useCatalog } from '../../context/CatalogContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
 import { useDays } from '../../hooks/useDays.js';
 import { slotsFor } from '../../lib/availability.js';
-import { cancelAppointment, createAppointment, createBlock, deleteAppointment, markNoShow, removeBlock, setStatus } from '../../lib/bookings.js';
+import { cancelAppointment, changeTotal, createAppointment, createBlock, deleteAppointment, markNoShow, removeBlock, setStatus } from '../../lib/bookings.js';
+import { PAY_METHODS } from '../../lib/finance.js';
 import { addDays, brl, brl0, dayLabel, DAYS, fromKey, hm, key, MONTHS, nowMin, todayKey, weekDates, whatsappUrl } from '../../lib/time.js';
 import { Avatar, Modal, Pill, STATUS } from '../../components/ui.jsx';
 
@@ -46,7 +47,7 @@ export default function Agenda() {
     return <div className="empty">Seu login ainda não foi ligado a um barbeiro. Peça ao dono para vincular você na tela Equipe.</div>;
   }
 
-  const hoursVals = Object.values(settings.hours || {});
+  const hoursVals = Object.values(settings.hours || {}).filter(Boolean);
   const AX0 = Math.floor(Math.min(480, ...hoursVals.map((h) => h.open)) / 60) * 60;
   const AX1 = Math.ceil(Math.max(1140, ...hoursVals.map((h) => h.close)) / 60) * 60;
   const H = (AX1 - AX0) * PPM;
@@ -61,6 +62,7 @@ export default function Agenda() {
   const d = fromKey(date);
   const by = { byUid: user.uid, byName: profile.name };
   const current = dialog?.type === 'appt' ? appts.find((a) => a.id === dialog.id) : null;
+  const target = dialog && ['pay', 'value'].includes(dialog.type) ? appts.find((a) => a.id === dialog.id) : null;
 
   const run = async (fn, ok) => {
     try { await fn(); toast(ok); } catch (e) { console.error(e); toast('Não foi possível concluir a ação'); }
@@ -151,10 +153,24 @@ export default function Agenda() {
             {current.clientPhone && (
               <a className="btn sm ghost" target="_blank" rel="noopener noreferrer" href={whatsappUrl(current.clientPhone, `Oi, ${current.clientName.split(' ')[0]}! Passando pra lembrar do seu horário ${dayLabel(current.date).toLowerCase()} às ${hm(current.start)} com ${current.barberName.split(' ')[0]} na Barbearia do Ratão. Confirma?`)}>Lembrar no WhatsApp</a>
             )}
+            {isAdmin && <button className="btn sm ghost" onClick={() => setDialog({ type: 'value', id: current.id })}>Alterar valor</button>}
             {isAdmin && <button className="btn sm ghost" onClick={() => ask('Excluir agendamento?', `Isso remove de vez o horário de ${current.clientName} (${dayLabel(current.date)}, ${hm(current.start)}). A exclusão fica no registro.`, 'Excluir', () => deleteAppointment(current, by), 'Agendamento excluído')}>Excluir</button>}
           </div>
         </Modal>
       )}
+
+      {dialog?.type === 'pay' && target && (
+        <Modal title="Como foi o pagamento?" onClose={() => setDialog(null)} actions={[{ label: 'Voltar', kind: 'ghost', onClick: () => setDialog(null) }]}>
+          <p>{target.clientName} deve <b>{brl(target.total)}</b> por {target.serviceNames.join(' + ')}.</p>
+          <div className="paygrid">
+            {PAY_METHODS.map((m) => (
+              <button key={m} className="btn ghost" onClick={() => run(() => setStatus(target, 'concluido', { payMethod: m }), 'Atendimento concluído')}>{m}</button>
+            ))}
+          </div>
+        </Modal>
+      )}
+
+      {dialog?.type === 'value' && target && <ValueDialog ap={target} by={by} toast={toast} onClose={() => setDialog(null)} />}
 
       {dialog?.type === 'confirm' && (
         <Modal title={dialog.title} onClose={() => setDialog(null)} actions={[
@@ -188,7 +204,7 @@ export default function Agenda() {
     }
     if (a.status === 'agendado') list.push({ label: 'Confirmar presença', onClick: () => run(() => setStatus(a, 'confirmado'), 'Confirmado') });
     if (open) list.push({ label: 'Iniciar atendimento', onClick: () => run(() => setStatus(a, 'atendimento'), 'Atendimento iniciado') });
-    if (a.status === 'atendimento') list.push({ label: 'Concluir atendimento', onClick: () => run(() => setStatus(a, 'concluido'), 'Atendimento concluído') });
+    if (a.status === 'atendimento') list.push({ label: 'Concluir e cobrar', onClick: () => setDialog({ type: 'pay', id: a.id }) });
     if (!list.length) list.push({ label: 'Fechar', kind: 'ghost', onClick: () => setDialog(null) });
     return list;
   }
@@ -278,6 +294,24 @@ function BlockDialog({ onClose, defaultDate, barbers, by, toast }) {
       <label className="field">Das<select value={start} onChange={(e) => setStart(+e.target.value)}>{times.map((m) => <option key={m} value={m}>{hm(m)}</option>)}</select></label>
       <label className="field">Até<select value={end} onChange={(e) => setEnd(+e.target.value)}>{times.map((m) => <option key={m} value={m}>{hm(m)}</option>)}</select></label>
       <label className="field">Motivo<input value={reason} maxLength={40} placeholder="Folga, atestado, curso" onChange={(e) => setReason(e.target.value)} /></label>
+    </Modal>
+  );
+}
+
+
+/* ---------- alterar valor (fica registrado no log) ---------- */
+function ValueDialog({ ap, by, toast, onClose }) {
+  const [v, setV] = useState(String(ap.total));
+  async function save() {
+    const n = parseFloat(String(v).replace(',', '.'));
+    if (!(n >= 0)) { toast('Informe um valor válido'); return; }
+    try { await changeTotal(ap, n, by); toast('Valor alterado'); onClose(); }
+    catch (e) { console.error(e); toast('Não foi possível alterar o valor'); }
+  }
+  return (
+    <Modal title="Alterar valor" onClose={onClose} actions={[{ label: 'Voltar', kind: 'ghost', onClick: onClose }, { label: 'Salvar valor', onClick: save }]}>
+      <label className="field">Novo valor em reais<input inputMode="decimal" value={v} onChange={(e) => setV(e.target.value)} /></label>
+      <p className="fine">A mudança fica registrada, com o valor antigo e o novo.</p>
     </Modal>
   );
 }

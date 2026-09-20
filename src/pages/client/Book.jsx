@@ -23,6 +23,7 @@ export default function Book() {
 
   const [step, setStep] = useState(state?.services ? 3 : 1);
   const [ids, setIds] = useState(state?.services || []);
+  const [fixedBarber, setFixedBarber] = useState(state?.barberId && !state?.services ? state.barberId : null);
   const [barberSel, setBarberSel] = useState(state?.barberId || null);
   const [date, setDate] = useState(null);
   const [slot, setSlot] = useState(null);
@@ -39,9 +40,9 @@ export default function Book() {
   const eligible = barbers.filter((b) => picked.every((i) => byId[i].barberIds?.includes(b.id)));
   const pool = barberSel === 'any' ? eligible : eligible.filter((b) => b.id === barberSel);
 
-  const toggle = (id) => { setIds((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id])); setBarberSel(null); setSlot(null); setDate(null); };
-  const comboHint = services.find((s) => s.includes && !ids.includes(s.id) && s.includes.every((i) => ids.includes(i)));
-  const useCombo = () => { setIds((p) => [...p.filter((x) => !comboHint.includes.includes(x)), comboHint.id]); setBarberSel(null); setSlot(null); };
+  const toggle = (id) => { setIds((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id])); setBarberSel(fixedBarber); setSlot(null); setDate(null); };
+  const comboHint = services.find((s) => s.includes?.length && !ids.includes(s.id) && s.includes.every((i) => ids.includes(i)));
+  const useCombo = () => { setIds((p) => [...p.filter((x) => !comboHint.includes.includes(x)), comboHint.id]); setBarberSel(fixedBarber); setSlot(null); };
 
   const hasSlots = (dk) => slotsFor({ barbers: pool, dk, dur, daysMap: days, settings }).length > 0;
   const activeDate = step === 3 ? (date && hasSlots(date) ? date : dates.find(hasSlots) || dates[0]) : date;
@@ -83,7 +84,7 @@ export default function Book() {
     const msg = `Agendei na Barbearia do Ratão: ${done.serviceNames.join(' + ')}, ${dayLabel(done.date)} às ${hm(done.start)} com ${done.barberName.split(' ')[0]}.`;
     return (
       <div className="screen done">
-        <h2 className="wordmark" style={{ fontSize: 96, paddingTop: 24 }}>Tá marcado.</h2>
+        <h2 className="wordmark sm">Tá marcado.</h2>
         <p>{done.barberName.split(' ')[0]} já foi avisado.</p>
         <Ticket ap={done} />
         <a className="btn wide" target="_blank" rel="noopener noreferrer" href={whatsappUrl('', msg)}>Enviar no WhatsApp</a>
@@ -109,11 +110,14 @@ export default function Book() {
       <div className="screen" style={{ paddingTop: 14 }}>
         {step === 1 && (
           <>
+            {fixedBarber && (
+              <div className="hint"><span>Agendando com <b>{barbers.find((b) => b.id === fixedBarber)?.name}</b></span><button className="btn sm ghost" onClick={() => { setFixedBarber(null); setBarberSel(null); }}>Trocar</button></div>
+            )}
             {comboHint && (
               <div className="hint"><span>{comboHint.name} sai por <b>{brl0(comboHint.price)}</b>.{comboHint.saves ? ` Você economiza ${brl0(comboHint.saves)}.` : ''}</span><button className="btn sm" onClick={useCombo}>Trocar</button></div>
             )}
             {CATS.map((c) => {
-              const list = services.filter((s) => s.cat === c);
+              const list = services.filter((s) => s.cat === c && (!fixedBarber || s.barberIds?.includes(fixedBarber)));
               if (!list.length) return null;
               return (
                 <div className="list" key={c}>
@@ -188,7 +192,7 @@ export default function Book() {
       </div>
 
       <div className="actionbar">
-        {step === 1 && <><div className="sum"><b>{brl(total)}</b><small>{picked.length} serviço{picked.length === 1 ? '' : 's'}, {dur} min</small></div><button className="btn" disabled={!picked.length} onClick={() => setStep(2)}>Continuar</button></>}
+        {step === 1 && <><div className="sum"><b>{brl(total)}</b><small>{picked.length} serviço{picked.length === 1 ? '' : 's'}, {dur} min</small></div><button className="btn" disabled={!picked.length} onClick={() => setStep(fixedBarber && eligible.some((b) => b.id === fixedBarber) ? 3 : 2)}>Continuar</button></>}
         {step === 2 && <><div className="sum"><b>{brl(total)}</b><small>{dur} min</small></div><button className="btn" disabled={!barberSel} onClick={() => setStep(3)}>Continuar</button></>}
         {step === 3 && <><div className="sum"><b>{slot ? hm(slot.start) : '--:--'}</b><small>{slot ? `${dayLabel(activeDate)}, com ${barbers.find((b) => b.id === slot.barberId)?.short}` : 'Escolha um horário'}</small></div><button className="btn" disabled={!slot} onClick={() => setStep(4)}>Continuar</button></>}
         {step === 4 && <button className="btn wide" disabled={busy} onClick={confirm}>{busy ? 'Agendando...' : state?.resched ? 'Confirmar novo horário' : 'Confirmar agendamento'}</button>}

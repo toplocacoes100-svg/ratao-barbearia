@@ -1,16 +1,33 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCatalog } from '../../context/CatalogContext.jsx';
 import { useMyAppointments } from '../../hooks/useMyAppointments.js';
 import { useDays } from '../../hooks/useDays.js';
+import { usePhotos } from '../../hooks/usePhotos.js';
 import { nextFree } from '../../lib/availability.js';
 import { addDays, dayLabel, hm, key, minsUntil, startOfToday } from '../../lib/time.js';
-import { Logo, Ticket } from '../../components/ui.jsx';
+import { Avatar, Logo, Ticket } from '../../components/ui.jsx';
+
+// Fotos do fundo trocam sozinhas (e param se o aparelho pedir menos movimento)
+function HeroBg({ photos }) {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (photos.length < 2 || matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+    const t = setInterval(() => setI((x) => (x + 1) % photos.length), 5000);
+    return () => clearInterval(t);
+  }, [photos.length]);
+  return (
+    <div className="hero-bg" aria-hidden="true">
+      {photos.map((p, k) => <img key={p.id} src={p.dataUrl} alt="" className={k === i % photos.length ? 'on' : ''} />)}
+    </div>
+  );
+}
 
 export default function Home() {
   const nav = useNavigate();
   const { barbers, services, settings } = useCatalog();
   const { list } = useMyAppointments();
+  const photos = usePhotos();
   const dates = useMemo(() => Array.from({ length: 14 }, (_, i) => key(addDays(startOfToday(), i))), []);
   const { days } = useDays(dates);
 
@@ -19,18 +36,18 @@ export default function Home() {
   const nb = nf && barbers.find((b) => b.id === nf.barberId);
   const upcoming = list.filter((a) => ['agendado', 'confirmado'].includes(a.status) && minsUntil(a.date, a.start) > -60);
   const last = [...list].reverse().find((a) => a.status === 'concluido');
-
   const repeat = () => nav('/app/agendar', { state: { services: last.serviceIds, barberId: last.barberId } });
 
   return (
     <div className="screen">
-      <section className="hero">
+      <section className={`hero${photos.length ? ' has-photo' : ''}`}>
+        {photos.length > 0 && <HeroBg photos={photos} />}
         <div className="hero-brand"><Logo size={34} /><span>Barbearia do</span></div>
         <h1 className="wordmark">RATÃO</h1>
         <p className="tag">Escolha, toque, marcou.</p>
       </section>
 
-      {nf && nb && (
+      {nf && nb ? (
         <section className="slab">
           <p>Próximo horário livre</p>
           <div className="big">{hm(nf.start)}</div>
@@ -40,12 +57,30 @@ export default function Home() {
             {last && <button className="btn dark-ghost" onClick={repeat}>Repetir último</button>}
           </div>
         </section>
-      )}
-      {!nf && (
+      ) : (
         <section className="slab">
           <p>Vamos marcar seu horário</p>
           <div className="row"><Link to="/app/agendar" className="btn dark">Agendar agora</Link></div>
         </section>
+      )}
+
+      {barbers.length > 0 && (
+        <>
+          <h2 className="sec-title">Escolha seu barbeiro</h2>
+          <div className="barbers-row">
+            {barbers.map((b) => {
+              const n = nextFree({ barbers: [b], dur: shortest, daysMap: days, settings, dates });
+              return (
+                <button key={b.id} className="bmini" onClick={() => nav('/app/agendar', { state: { barberId: b.id } })}>
+                  <Avatar barber={b} size={64} />
+                  <b>{b.short || b.name}</b>
+                  <small>{b.spec}</small>
+                  <span>{n ? `${dayLabel(n.dk)}, ${hm(n.start)}` : 'Sem horário'}</span>
+                </button>
+              );
+            })}
+          </div>
+        </>
       )}
 
       {upcoming[0] && (

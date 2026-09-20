@@ -12,11 +12,15 @@ export default function StaffLayout() {
         <div className="brand"><Logo /><span>Ratão</span></div>
         <nav className="nav" aria-label="Menu">
           <NavLink to="/painel/agenda" className={cls}>Agenda</NavLink>
-          {admin && <NavLink to="/painel/equipe" className={cls}>Equipe</NavLink>}
+          {admin && <NavLink to="/painel/financeiro" className={cls}>Financeiro</NavLink>}
+          {admin && <NavLink to="/painel/servicos" className={cls}>Serviços</NavLink>}
+          {admin && <NavLink to="/painel/barbeiros" className={cls}>Barbeiros</NavLink>}
+          {admin && <NavLink to="/painel/equipe" className={cls}>Acessos</NavLink>}
+          {admin && <NavLink to="/painel/configuracoes" className={cls}>Configurações</NavLink>}
           <NavLink to="/app" className={cls}>Ver como cliente</NavLink>
         </nav>
-        <div className="ml-auto flex items-center gap-2">
-          <span className="fine hidden sm:inline">{profile.name}</span>
+        <div className="flex items-center gap-2">
+          <span className="fine hidden md:inline">{profile.name}</span>
           <button className="btn sm ghost" onClick={logout}>Sair</button>
           <ThemeButton />
         </div>

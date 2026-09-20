@@ -1,19 +1,26 @@
-# Barbearia do Ratão — Etapa 1
+# Barbearia do Ratão
 
 App web de agendamento e gestão da Barbearia do Ratão.
 **React + Vite + Tailwind + Firebase** (Authentication + Firestore).
 
-O que já funciona nesta etapa:
+O que já funciona:
 
 - Login por e-mail e senha, criação de conta e "esqueci a senha"
 - Três perfis: **cliente**, **barbeiro** e **dono (admin)**, com regras de segurança por perfil
-- **Cliente:** agendar em 4 passos (serviço, barbeiro, horário, confirmar), ver e cancelar horários, remarcar, repetir último serviço
-- **Barbeiro e dono:** agenda por dia e por semana com cores por status, agendamento manual, bloqueio de horário, confirmar, iniciar, concluir, marcar falta, cancelar
-- **Dono:** tela Equipe para dar acesso de barbeiro/dono e carregar dados de exemplo
+- **Cliente:** tela inicial com fotos de fundo e os barbeiros para escolher, agendamento em 4 passos (ou direto pelo barbeiro), ver e cancelar horários, remarcar, repetir último serviço
+- **Barbeiro e dono:** agenda por dia e por semana com cores por status, agendamento manual, bloqueio de horário, confirmar, iniciar, concluir com forma de pagamento, marcar falta, cancelar
+- **Dono:**
+  - **Financeiro:** faturamento, despesas, comissões e resultado por período; formas de pagamento; lançar e excluir despesas; fechamento de comissão por barbeiro
+  - **Serviços:** criar, editar, desativar e excluir (preço, duração, quem faz, combos)
+  - **Barbeiros:** criar, editar, desativar e excluir (foto, folgas, almoço, comissão, serviços que faz)
+  - **Acessos:** dar acesso de barbeiro ou dono e carregar dados de exemplo
+  - **Configurações:** fotos da tela inicial, horário de funcionamento de cada dia (domingo incluso) e regras de agendamento
 - Nunca deixa dois agendamentos no mesmo horário do mesmo barbeiro
-- Cancelamento fora do prazo e faltas ficam registrados; ações sensíveis pedem confirmação e vão para o registro (coleção `logs`)
+- Cancelamento fora do prazo e faltas ficam registrados; excluir, cancelar e alterar valor pedem confirmação e vão para o registro (coleção `logs`)
 
-Fica para as próximas etapas: telas para editar serviços/preços/barbeiros/configurações, caixa e comissões, clientes e relatórios, fidelidade e cupons.
+Fica para as próximas etapas: abertura e fechamento de caixa, venda de produtos e estoque, tela de clientes (inativos, aniversários), fidelidade e cupons, relatórios em PDF/Excel, lembretes automáticos.
+
+**Atualizando de uma versão anterior:** extraia esta pasta, rode `npm install` (há dependências novas) e **publique de novo o arquivo `firestore.rules`** no console (há regras novas para fotos e financeiro).
 
 ---
 
@@ -79,9 +86,15 @@ Se o deploy reclamar do Hosting, rode `firebase init hosting` e escolha: pasta `
 | `appointments/{id}` | data, início/fim, barbeiro, cliente, serviços, valor, status | cliente (os seus), barbeiro (os dele), dono (todos) | cliente cria/cancela os seus; equipe gerencia |
 | `days/{barbeiro_data}` | só os intervalos ocupados do dia (sem dados pessoais) | usuários logados | usuários logados |
 | `blocks/{id}` | bloqueios de horário | equipe | equipe |
-| `logs/{id}` | cancelamentos, faltas, exclusões, bloqueios | dono | qualquer usuário grava o seu |
+| `photos/{id}` | fotos da tela inicial (já reduzidas, guardadas como texto) | todos | dono |
+| `expenses/{id}` | despesas: descrição, valor, data, categoria, fixa/variável | dono | dono |
+| `commissionClosures/{id}` | fechamentos de comissão (barbeiro, período, valor) | dono | dono |
+| `logs/{id}` | cancelamentos, faltas, exclusões, bloqueios, valores alterados | dono | qualquer usuário grava o seu |
 
 Horários são guardados em **minutos desde a meia-noite** (540 = 09:00) e datas como texto `AAAA-MM-DD`.
+
+### Sobre as fotos
+O Firebase Storage exige hoje o plano pago (Blaze). Para você não precisar de cartão, as fotos são reduzidas no navegador (cerca de 1100 px, JPEG) e guardadas no próprio Firestore. Cabem até 8 fotos na tela inicial. Se um dia migrar para o plano pago, dá para trocar para o Storage sem mudar o resto.
 
 ### Sobre o "nunca dois no mesmo horário"
 O agendamento acontece dentro de uma **transação**: o app lê o mapa do dia em `days`, confere o conflito e grava o agendamento e o mapa juntos. Se duas pessoas tentarem o mesmo horário ao mesmo tempo, só uma passa.
@@ -95,11 +108,11 @@ src/
   App.jsx                rotas e proteção por perfil
   context/               login, catálogo (serviços/barbeiros/config) e avisos
   hooks/                 useDays (horários ocupados), useMyAppointments
-  lib/                   availability (regras de horário), bookings (transações), defaults, time
+  lib/                   availability (regras de horário), bookings (transações), finance (cálculos), image, defaults, time
   components/ui.jsx      logo, poste de progresso, bilhete, janela, etc.
   pages/Login.jsx
   pages/client/          Home, Book (4 passos), Mine, Profile
-  pages/staff/           Agenda, Team
+  pages/staff/           Agenda, Financeiro, Serviços, Barbeiros, Acessos (Team), Configurações
 firestore.rules          regras de segurança por perfil
 firebase.json            hospedagem + regras
 ```

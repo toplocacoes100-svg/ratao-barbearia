@@ -47,9 +47,17 @@ export async function cancelAppointment(ap, { late = false, byUid = '', byName =
   });
 }
 
-export async function setStatus(ap, status) {
+export async function setStatus(ap, status, more = {}) {
   const extra = status === 'atendimento' ? { startedAt: serverTimestamp() } : status === 'concluido' ? { doneAt: serverTimestamp() } : {};
-  await updateDoc(doc(db, 'appointments', ap.id), { status, ...extra });
+  await updateDoc(doc(db, 'appointments', ap.id), { status, ...extra, ...more });
+}
+
+/** Altera o valor de um atendimento e deixa registrado quem mudou, de quanto para quanto. */
+export async function changeTotal(ap, newTotal, { byUid = '', byName = '' } = {}) {
+  await runTransaction(db, async (tx) => {
+    tx.update(doc(db, 'appointments', ap.id), { total: newTotal });
+    tx.set(logDoc(), { text: `Valor alterado: ${ap.clientName}, ${dayLabel(ap.date)} ${hm(ap.start)}, de R$ ${Number(ap.total).toFixed(2)} para R$ ${Number(newTotal).toFixed(2)}.`, by: byUid, byName, at: serverTimestamp() });
+  });
 }
 
 export async function markNoShow(ap, { byUid = '', byName = '' } = {}) {
