@@ -1,12 +1,14 @@
 // Reduz a foto no próprio navegador antes de gravar (o Firestore aceita até ~1 MB por documento).
+// Erros conhecidos: IMAGE_UNREADABLE (o navegador não abre esse formato) e IMAGE_TOO_BIG (pesada demais).
 async function load(file) {
   try { return await createImageBitmap(file); }
   catch {
     return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
       const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = reject;
-      img.src = URL.createObjectURL(file);
+      img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('IMAGE_UNREADABLE')); };
+      img.src = url;
     });
   }
 }

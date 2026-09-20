@@ -3,16 +3,27 @@ import { addDoc, collection, deleteDoc, doc, serverTimestamp, setDoc } from 'fir
 import { db } from '../../firebase.js';
 import { useCatalog } from '../../context/CatalogContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
-import { usePhotos } from '../../hooks/usePhotos.js';
+import { usePhotosState } from '../../hooks/usePhotos.js';
 import { fileToDataUrl } from '../../lib/image.js';
 import { hm } from '../../lib/time.js';
 import { Modal } from '../../components/ui.jsx';
+import ClientsTab from './ClientsTab.jsx';
+import ShareTab from './ShareTab.jsx';
 
 const WEEK = [[1, 'Segunda'], [2, 'Terça'], [3, 'Quarta'], [4, 'Quinta'], [5, 'Sexta'], [6, 'Sábado'], [0, 'Domingo']];
 const MAX_PHOTOS = 8;
+
+// Traduz o erro do envio de foto para uma explicação que dá para agir em cima
+function photoError(ex) {
+  if (ex?.code === 'permission-denied') return 'Sem permissão para gravar. Publique as regras novas do Firestore (arquivo firestore.rules) e tente de novo.';
+  if (ex?.message === 'IMAGE_UNREADABLE') return 'Não consegui abrir essa imagem. Use uma foto JPG ou PNG.';
+  if (ex?.message === 'IMAGE_TOO_BIG') return 'Essa foto é pesada demais. Tente outra.';
+  return `Não foi possível enviar a foto (${ex?.code || ex?.message || 'erro desconhecido'}).`;
+}
 const toMin = (v) => { const [h, m] = v.split(':').map(Number); return h * 60 + m; };
 
-export default function Settings() {
+// Aba "Geral": fotos, horário de funcionamento e regras
+function General() {
   const { settings } = useCatalog();
   const toast = useToast();
 
@@ -47,7 +58,7 @@ export default function Settings() {
 
   /* ---------- fotos da tela inicial ---------- */
   const [refresh, setRefresh] = useState(0);
-  const photos = usePhotos(refresh);
+  const { photos, error: photosError } = usePhotosState(refresh);
   const [busy, setBusy] = useState(false);
   const [del, setDel] = useState(null);
 
@@ -67,7 +78,7 @@ export default function Settings() {
       setRefresh((n) => n + 1);
     } catch (ex) {
       console.error(ex);
-      toast(ex.message === 'IMAGE_TOO_BIG' ? 'Essa foto é pesada demais. Tente outra.' : 'Não foi possível enviar. Confira se as regras foram publicadas.');
+      toast(photoError(ex));
     } finally { setBusy(false); }
   }
   async function remove() {
@@ -83,6 +94,13 @@ export default function Settings() {
       <section className="panel">
         <h3>Fotos da tela inicial</h3>
         <p className="fine" style={{ marginBottom: 12 }}>Aparecem no fundo da tela inicial do cliente e trocam sozinhas a cada 5 segundos. Funcionam melhor fotos na horizontal ou quadradas, com boa luz. Até {MAX_PHOTOS} fotos; elas são reduzidas automaticamente antes de enviar.</p>
+        {photosError && (
+          <div className="infobox" style={{ marginBottom: 12 }}>
+            {photosError === 'permission-denied'
+              ? <>As fotos não carregaram porque as <b>regras novas do Firestore ainda não foram publicadas</b>. Cole o conteúdo do arquivo <b>firestore.rules</b> em Firestore, aba Regras, e clique em Publicar.</>
+              : <>Não foi possível carregar as fotos agora ({photosError}). Atualize a página e tente de novo.</>}
+          </div>
+        )}
         <div className="thumbs" style={{ marginBottom: 14 }}>
           {photos.map((p) => (
             <div className="thumb" key={p.id}>
@@ -140,6 +158,22 @@ export default function Settings() {
           <p>A foto sai da tela inicial dos clientes.</p>
         </Modal>
       )}
+    </>
+  );
+}
+
+// Configurações com abas: Geral, Clientes do app e Link/QR Code
+export default function Settings() {
+  const [tab, setTab] = useState('geral');
+  const T = (id, label) => <button className="pillbtn" role="tab" aria-selected={tab === id} aria-pressed={tab === id} onClick={() => setTab(id)}>{label}</button>;
+  return (
+    <>
+      <div className="pills" role="tablist" aria-label="Seções das configurações">
+        {T('geral', 'Geral')}{T('clientes', 'Clientes do app')}{T('divulgacao', 'Link e QR Code')}
+      </div>
+      {tab === 'geral' && <General />}
+      {tab === 'clientes' && <ClientsTab />}
+      {tab === 'divulgacao' && <ShareTab />}
     </>
   );
 }

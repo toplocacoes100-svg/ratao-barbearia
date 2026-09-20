@@ -299,3 +299,37 @@
   input[type=color] { padding: 2px; width: 56px; }
   .infobox { background: color-mix(in srgb, var(--accent) 12%, var(--surface)); border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--line)); border-radius: 12px; padding: 12px 14px; font-size: 14px; }
 }
+
+@layer components {
+  /* ---------- link, QR Code e cartaz ---------- */
+  .sharegrid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+  @media (max-width: 900px) { .sharegrid { grid-template-columns: 1fr; } }
+  .qrcard { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .qrcard .linkrow { justify-content: center; }
+  .qrshow { width: min(300px, 100%); aspect-ratio: 1; border-radius: 14px; border: 1px solid var(--line); background: #fff; display: block; }
+  .qrshow.empty { display: grid; place-items: center; color: var(--muted); }
+  .msgpreview { white-space: pre-wrap; font: inherit; font-size: 14px; background: var(--surface2); border-radius: 12px; padding: 12px 14px; }
+  .btn.disabled { opacity: .4; pointer-events: none; }
+
+  .qrposter { container-type: inline-size; aspect-ratio: 210 / 297; width: 100%; max-width: 420px; margin: 0 auto; background: #fff; color: #151417; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--line); border-radius: 6px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .qrposter .qrbar { flex: none; width: 100%; height: 4.5cqw; }
+  .qrposter .qrbody { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 8cqw; gap: 1.6cqw; }
+  .qrposter .qrlogo { width: 13cqw; height: 13cqw; }
+  .qrposter .qrsmall { font-size: 4cqw; color: #5c574c; }
+  .qrposter .qrword { font-family: var(--display); font-weight: 900; font-size: 25cqw; line-height: .8; padding-top: 3cqw; text-shadow: .8cqw .8cqw 0 #C9A24B; }
+  .qrposter .qrlead { font-size: 5.4cqw; font-weight: 700; margin-top: 2cqw; }
+  .qrposter .qrimg { width: 50cqw; height: 50cqw; margin: 2cqw 0 0; border: .5cqw solid #151417; border-radius: 2cqw; background: #fff; }
+  .qrposter .qrhint { font-size: 3.4cqw; color: #5c574c; }
+  .qrposter .qrsteps { list-style: decimal inside; font-size: 3.7cqw; font-weight: 600; line-height: 1.55; margin-top: 1cqw; padding: 0; text-align: left; }
+  .qrposter .qrurl { font-size: 3.2cqw; font-weight: 700; color: #7a5a10; margin-top: 1.5cqw; word-break: break-all; }
+
+  .qrposter-print { display: none; }
+  @media print {
+    @page { size: A4 portrait; margin: 0; }
+    html, body { background: #fff !important; padding: 0 !important; }
+    #root { display: none !important; }
+    #toast, #modal { display: none !important; }
+    .qrposter-print { display: block !important; position: fixed; inset: 0; }
+    .qrposter-print .qrposter { max-width: none; width: 100%; height: 100%; aspect-ratio: auto; border: 0; border-radius: 0; }
+  }
+}

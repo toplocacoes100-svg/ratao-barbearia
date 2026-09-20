@@ -9,7 +9,8 @@ export function ToastProvider({ children }) {
   const show = useCallback((m) => {
     setMsg(m);
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => setMsg(''), 3000);
+    // mensagens longas ficam mais tempo na tela (de 3 a 9 segundos)
+    timer.current = setTimeout(() => setMsg(''), Math.min(9000, Math.max(3000, String(m).length * 55)));
   }, []);
   return (
     <Ctx.Provider value={show}>
