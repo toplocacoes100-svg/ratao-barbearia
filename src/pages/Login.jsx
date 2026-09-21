@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { Logo, Splash, ThemeButton } from '../components/ui.jsx';
+import { Splash } from '../components/ui.jsx';
+import BrandImg from '../components/BrandImg.jsx';
 
 const MSG = {
   'auth/invalid-credential': 'E-mail ou senha incorretos.',
@@ -44,30 +45,30 @@ export default function Login() {
   }
 
   return (
-    <main className="login">
-      <div className="flex items-center justify-between">
-        <div className="hero-brand"><Logo size={34} /><span>Barbearia do</span></div>
-        <ThemeButton />
+    <main className="loginpage force-dark">
+      <div className="loginwrap">
+        <BrandImg name="emblema" className="loginart" alt="Ratão Barbearia: estilo, atitude e confiança" width="900" height="963" fetchPriority="high" />
+        <div className="loginform">
+          <div className="pills" role="group" aria-label="Entrar ou criar conta">
+            <button className="pillbtn" aria-pressed={mode === 'entrar'} onClick={() => setMode('entrar')}>Entrar</button>
+            <button className="pillbtn" aria-pressed={mode === 'criar'} onClick={() => setMode('criar')}>Criar conta</button>
+          </div>
+          <form onSubmit={submit} className="flex flex-col gap-3">
+            {mode === 'criar' && (
+              <>
+                <label className="field">Nome<input required value={f.name} onChange={set('name')} autoComplete="name" /></label>
+                <label className="field">WhatsApp<input required type="tel" value={f.phone} onChange={set('phone')} placeholder="(11) 90000-0000" autoComplete="tel" /></label>
+              </>
+            )}
+            <label className="field">E-mail<input required type="email" value={f.email} onChange={set('email')} autoComplete="email" /></label>
+            <label className="field">Senha<input required type="password" minLength={6} value={f.password} onChange={set('password')} autoComplete={mode === 'entrar' ? 'current-password' : 'new-password'} /></label>
+            {err && <div className="err" role="alert">{err}</div>}
+            {info && <div className="hint">{info}</div>}
+            <button className="btn wide" disabled={busy}>{busy ? 'Aguarde...' : mode === 'entrar' ? 'Entrar' : 'Criar minha conta'}</button>
+            {mode === 'entrar' && <button type="button" className="linkbtn" onClick={forgot}>Esqueci minha senha</button>}
+          </form>
+        </div>
       </div>
-      <h1 className="wordmark" style={{ marginTop: 0 }}>RATÃO</h1>
-      <div className="pills" role="group" aria-label="Entrar ou criar conta">
-        <button className="pillbtn" aria-pressed={mode === 'entrar'} onClick={() => setMode('entrar')}>Entrar</button>
-        <button className="pillbtn" aria-pressed={mode === 'criar'} onClick={() => setMode('criar')}>Criar conta</button>
-      </div>
-      <form onSubmit={submit} className="flex flex-col gap-3">
-        {mode === 'criar' && (
-          <>
-            <label className="field">Nome<input required value={f.name} onChange={set('name')} autoComplete="name" /></label>
-            <label className="field">WhatsApp<input required type="tel" value={f.phone} onChange={set('phone')} placeholder="(11) 90000-0000" autoComplete="tel" /></label>
-          </>
-        )}
-        <label className="field">E-mail<input required type="email" value={f.email} onChange={set('email')} autoComplete="email" /></label>
-        <label className="field">Senha<input required type="password" minLength={6} value={f.password} onChange={set('password')} autoComplete={mode === 'entrar' ? 'current-password' : 'new-password'} /></label>
-        {err && <div className="err" role="alert">{err}</div>}
-        {info && <div className="hint">{info}</div>}
-        <button className="btn wide" disabled={busy}>{busy ? 'Aguarde...' : mode === 'entrar' ? 'Entrar' : 'Criar minha conta'}</button>
-        {mode === 'entrar' && <button type="button" className="linkbtn" onClick={forgot}>Esqueci minha senha</button>}
-      </form>
     </main>
   );
 }
