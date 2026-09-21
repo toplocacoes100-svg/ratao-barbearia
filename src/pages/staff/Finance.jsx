@@ -7,6 +7,7 @@ import { useToast } from '../../context/ToastContext.jsx';
 import { EXPENSE_CATS, periodRange, summarize } from '../../lib/finance.js';
 import { brl, brl0, dayLabel, fromKey, todayKey } from '../../lib/time.js';
 import { Modal } from '../../components/ui.jsx';
+import { useSubscriptions } from '../../hooks/useSubscriptions.js';
 
 const fmtDate = (dk) => { const d = fromKey(dk); return d.toLocaleDateString('pt-BR'); };
 
@@ -21,6 +22,7 @@ export default function Finance() {
   const [closures, setClosures] = useState([]);
   const [form, setForm] = useState(null);
   const [confirm, setConfirm] = useState(null);
+  const subs = useSubscriptions();
 
   const pick = (p) => { setPeriod(p); setRange(periodRange(p)); };
 
@@ -32,7 +34,9 @@ export default function Finance() {
   }, [from, to]);
   useEffect(() => onSnapshot(query(collection(db, 'commissionClosures'), orderBy('paidAt', 'desc'), limit(15)), (s) => setClosures(s.docs.map((d) => ({ id: d.id, ...d.data() }))), (e) => console.error(e)), []);
 
-  const S = useMemo(() => summarize({ appts, expenses, barbers: allBarbers, from, to }), [appts, expenses, allBarbers, from, to]);
+  // mensalidades recebidas dentro do período (pela data do recebimento)
+  const subPayments = useMemo(() => subs.flatMap((s) => Object.values(s.paid || {}).filter((p) => p.date >= from && p.date <= to)), [subs, from, to]);
+  const S = useMemo(() => summarize({ appts, expenses, barbers: allBarbers, from, to, subPayments }), [appts, expenses, allBarbers, from, to, subPayments]);
   const days = Object.entries(S.byDay);
   const maxDay = Math.max(1, ...days.map(([, v]) => v));
   const maxM = Math.max(1, ...Object.values(S.byMethod));
@@ -84,7 +88,7 @@ export default function Finance() {
   return (
     <>
       <div className="head-row">
-        <div><h1>Financeiro</h1><p className="fine">Só atendimentos concluídos entram no faturamento.</p></div>
+        <div><h1>Financeiro</h1><p className="fine">Entram no faturamento os atendimentos concluídos e as mensalidades recebidas.</p></div>
         <div className="toolbar">
           <div className="pills" role="group" aria-label="Período">{P('hoje', 'Hoje')}{P('semana', 'Semana')}{P('mes', 'Mês')}</div>
           <input type="date" value={from} max={to} onChange={(e) => { setPeriod('custom'); setRange([e.target.value, to]); }} aria-label="De" />
@@ -98,7 +102,7 @@ export default function Finance() {
         <div className="kpi"><small>Comissões</small><b>{brl0(S.commissionTotal)}</b></div>
         <div className="kpi"><small>Resultado</small><b className={S.result < 0 ? 'neg' : ''}>{brl0(S.result)}</b></div>
       </div>
-      <p className="fine">{S.count} atendimento{S.count === 1 ? '' : 's'} concluído{S.count === 1 ? '' : 's'}, ticket médio de {S.count ? brl(S.avgTicket) : '—'}. Resultado = faturamento menos despesas e comissões.</p>
+      <p className="fine">{S.count} atendimento{S.count === 1 ? '' : 's'} concluído{S.count === 1 ? '' : 's'}{S.coveredCount ? ` (${S.coveredCount} cobertos por plano de mensalista)` : ''}, ticket médio avulso de {S.avulsoCount ? brl(S.avgTicket) : '—'}. Faturamento = avulsos {brl(S.avulsoRevenue)} + mensalidades {brl(S.subRevenue)}. Resultado = faturamento menos despesas e comissões.</p>
 
       <div className="grid2">
         <section className="panel">
@@ -122,7 +126,7 @@ export default function Finance() {
         <h3>Comissões dos barbeiros</h3>
         <div className="tblwrap" style={{ border: 0 }}>
           <table>
-            <thead><tr><th>Barbeiro</th><th className="num">Atend.</th><th className="num">Faturou</th><th className="num">%</th><th className="num">Comissão</th><th className="num">Já paga</th><th className="num">A pagar</th><th /></tr></thead>
+            <thead><tr><th>Barbeiro</th><th className="num">Atend.</th><th className="num">Base</th><th className="num">%</th><th className="num">Comissão</th><th className="num">Já paga</th><th className="num">A pagar</th><th /></tr></thead>
             <tbody>
               {S.commissions.length === 0 && <tr><td colSpan={8}><div className="empty" style={{ border: 0 }}>Nenhum atendimento concluído no período.</div></td></tr>}
               {S.commissions.map((c) => (
@@ -135,7 +139,7 @@ export default function Finance() {
             </tbody>
           </table>
         </div>
-        <p className="fine" style={{ marginTop: 10 }}>Fechar marca esses atendimentos como pagos e guarda o fechamento no histórico. A comissão só conta atendimentos concluídos.</p>
+        <p className="fine" style={{ marginTop: 10 }}>Fechar marca esses atendimentos como pagos e guarda o fechamento no histórico. A comissão só conta atendimentos concluídos e usa o valor de tabela, inclusive nos atendimentos de mensalistas.</p>
       </section>
 
       <section className="panel">

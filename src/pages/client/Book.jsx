@@ -9,6 +9,7 @@ import { cancelAppointment, createAppointment } from '../../lib/bookings.js';
 import { CATS } from '../../lib/defaults.js';
 import { addDays, brl, brl0, dayLabel, DAYS, fromKey, hm, key, MONTHS, startOfToday, todayKey } from '../../lib/time.js';
 import { Avatar, Pole, Ticket } from '../../components/ui.jsx';
+import ShareCardDialog from '../../components/ShareCardDialog.jsx';
 import { whatsappUrl } from '../../lib/time.js';
 
 const TITLES = ['Escolha os serviços', 'Com quem?', 'Quando?', 'Confere aí'];
@@ -29,6 +30,7 @@ export default function Book() {
   const [slot, setSlot] = useState(null);
   const [done, setDone] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [cardOpen, setCardOpen] = useState(false);
 
   const dates = useMemo(() => Array.from({ length: 14 }, (_, i) => key(addDays(startOfToday(), i))), []);
   const { days } = useDays(dates);
@@ -81,14 +83,20 @@ export default function Book() {
   }
 
   if (done) {
+    const doneBarber = barbers.find((b) => b.id === done.barberId);
+    const first = done.barberName.split(' ')[0];
+    const msgBarber = `Oi, ${first}! Acabei de agendar pelo app da barbearia.\n\n*${done.serviceNames.join(' + ')}*\n${dayLabel(done.date)} às ${hm(done.start)}\nCliente: ${profile.name}`;
     const msg = `Agendei na Barbearia do Ratão: ${done.serviceNames.join(' + ')}, ${dayLabel(done.date)} às ${hm(done.start)} com ${done.barberName.split(' ')[0]}.`;
     return (
       <div className="screen done">
         <h2 className="wordmark sm">Tá marcado.</h2>
-        <p>{done.barberName.split(' ')[0]} já foi avisado.</p>
+        <p>O horário já aparece na agenda de {done.barberName.split(' ')[0]}.</p>
         <Ticket ap={done} />
-        <a className="btn wide" target="_blank" rel="noopener noreferrer" href={whatsappUrl('', msg)}>Enviar no WhatsApp</a>
+        {doneBarber?.phone && <a className="btn wide" target="_blank" rel="noopener noreferrer" href={whatsappUrl(doneBarber.phone, msgBarber)}>Avisar {first} no WhatsApp</a>}
+        <a className="btn ghost wide" target="_blank" rel="noopener noreferrer" href={whatsappUrl('', msg)}>Compartilhar no WhatsApp</a>
+        <button className="btn ghost wide" onClick={() => setCardOpen(true)}>Salvar comprovante em imagem</button>
         <Link className="btn ghost wide" to="/app/meus">Ver meus horários</Link>
+        {cardOpen && <ShareCardDialog ap={done} barber={doneBarber} settings={settings} audience="client" chat={doneBarber?.phone ? { phone: doneBarber.phone } : null} toast={toast} onClose={() => setCardOpen(false)} />}
       </div>
     );
   }

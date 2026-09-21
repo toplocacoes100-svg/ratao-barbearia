@@ -8,6 +8,10 @@ O que já funciona:
 - Login por e-mail e senha, criação de conta e "esqueci a senha"
 - Três perfis: **cliente**, **barbeiro** e **dono (admin)**, com regras de segurança por perfil
 - **Cliente:** tela inicial com fotos de fundo e os barbeiros para escolher, agendamento em 4 passos (ou direto pelo barbeiro), ver e cancelar horários, remarcar, repetir último serviço
+- **Banner do agendamento:** imagem profissional (logo, data e hora em destaque, cliente, serviço, valor, barbeiro com foto, endereço e QR do app), gerada no próprio navegador. O dono (na Agenda) e o barbeiro (no Modo barbeiro) escolhem **Enviar banner**, em versão "Confirmação" ou "Lembrete". No celular, o menu de compartilhar leva imagem e texto para o WhatsApp; no computador, baixa-se ou copia-se a imagem e anexa-se na conversa. O cliente também pode salvar o comprovante em imagem depois de agendar. Endereço, WhatsApp e Instagram que aparecem no banner ficam em Configurações. Observação: o WhatsApp não permite que um link anexe imagem sozinho; o envio automático da imagem direto ao número do cliente só existe pela API oficial do WhatsApp (paga)
+- **Mensalistas** (aba do dono): planos mensais (valor, atendimentos incluídos por mês, serviços cobertos), cadastro do mensalista, uso do mês, registro do pagamento da mensalidade (pago, pendente ou vencido) e cobrança pelo WhatsApp. Ao dar baixa, o barbeiro escolhe "Cobrir com o plano" e o uso do mês sobe sozinho. A mensalidade entra no faturamento do Financeiro; o atendimento coberto não vira receita de novo, e a comissão do barbeiro usa o valor de tabela
+- **Avisos ao barbeiro:** no Modo barbeiro, banner (com som e notificação, se ligados) quando entra ou é cancelado um agendamento dele, enquanto a tela estiver aberta. O cliente também pode avisar o barbeiro pelo WhatsApp ao concluir o agendamento (basta cadastrar o WhatsApp do barbeiro em Barbeiros)
+- **Modo barbeiro** (endereço `/barbeiro`, feito para o celular): o barbeiro entra com o próprio login e cai direto na agenda do dia dele. Vê os horários livres entre os atendimentos e toca em **Encaixar** para colocar um cliente sem hora marcada. Dá **baixa** no atendimento escolhendo a forma de pagamento, marca falta e acompanha o que faturou e a própria comissão do dia
 - **Barbeiro e dono:** agenda por dia e por semana com cores por status, agendamento manual, bloqueio de horário, confirmar, iniciar, concluir com forma de pagamento, marcar falta, cancelar
 - **Dono:**
   - **Financeiro:** faturamento, despesas, comissões e resultado por período; formas de pagamento; lançar e excluir despesas; fechamento de comissão por barbeiro
@@ -89,6 +93,8 @@ Se o deploy reclamar do Hosting, rode `firebase init hosting` e escolha: pasta `
 | `photos/{id}` | fotos da tela inicial (já reduzidas, guardadas como texto) | todos | dono |
 | `expenses/{id}` | despesas: descrição, valor, data, categoria, fixa/variável | dono | dono |
 | `commissionClosures/{id}` | fechamentos de comissão (barbeiro, período, valor) | dono | dono |
+| `plans/{id}` | planos mensais: nome, valor, atendimentos por mês, serviços | equipe | dono |
+| `subscriptions/{id}` | mensalistas: cliente, plano, valor, vencimento, `paid` (pagamentos por mês) e `usage` (atendimentos usados por mês) | equipe | dono; o barbeiro só soma `usage` |
 | `logs/{id}` | cancelamentos, faltas, exclusões, bloqueios, valores alterados | dono | qualquer usuário grava o seu |
 
 Horários são guardados em **minutos desde a meia-noite** (540 = 09:00) e datas como texto `AAAA-MM-DD`.

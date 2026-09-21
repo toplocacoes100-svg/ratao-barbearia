@@ -49,3 +49,33 @@ export function nextFree({ barbers, dur, daysMap, settings, dates }) {
   }
   return null;
 }
+
+const OCCUPYING = ['agendado', 'confirmado', 'atendimento', 'concluido'];
+
+/**
+ * Trechos livres do dia de um barbeiro, para oferecer encaixes.
+ * Desconta almoço, bloqueios e atendimentos (com o intervalo entre eles, igual à regra de agendamento).
+ * Se for hoje, só considera de agora em diante.
+ */
+export function freeGaps({ barber, dk, appts = [], blocks = [], settings, nowMinutes = 0, minLen = 15 }) {
+  const wd = fromKey(dk).getDay();
+  const h = settings.hours?.[wd];
+  if (!h || (barber.off || []).includes(wd) || dk < todayKey()) return [];
+  let from = h.open;
+  if (dk === todayKey()) from = Math.max(from, Math.ceil(nowMinutes / 5) * 5);
+
+  const busy = [];
+  if (barber.lunch) busy.push([barber.lunch.start, barber.lunch.end]);
+  blocks.forEach((b) => busy.push([b.start, b.end]));
+  appts.filter((a) => OCCUPYING.includes(a.status)).forEach((a) => busy.push([a.start - settings.buffer, a.end + settings.buffer]));
+  busy.sort((x, y) => x[0] - y[0]);
+
+  const gaps = [];
+  let cur = from;
+  for (const [s, e] of busy) {
+    if (s > cur) gaps.push({ start: cur, end: Math.min(s, h.close) });
+    cur = Math.max(cur, e);
+  }
+  if (h.close > cur) gaps.push({ start: cur, end: h.close });
+  return gaps.filter((g) => g.end - g.start >= minLen);
+}

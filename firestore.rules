@@ -81,6 +81,16 @@ service cloud.firestore {
     match /expenses/{id} { allow read, write: if isAdmin(); }
     match /commissionClosures/{id} { allow read, write: if isAdmin(); }
 
+    // Planos e mensalistas: a equipe lê, só o dono cria e altera.
+    // O barbeiro só consegue somar o uso do mês (campo "usage") ao dar baixa pelo plano.
+    match /plans/{id} { allow read: if isStaff(); allow write: if isAdmin(); }
+    match /subscriptions/{id} {
+      allow read: if isStaff();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (isBarber() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['usage']));
+    }
+
     // Registro de ações sensíveis: qualquer um grava o seu, só o dono lê.
     match /logs/{id} {
       allow read: if isAdmin();

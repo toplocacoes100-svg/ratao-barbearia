@@ -12,20 +12,30 @@ export function periodRange(p) {
 
 /**
  * Consolida o financeiro do período.
- * Regras: só conta atendimento "concluído"; comissão = valor x % do barbeiro sobre serviços;
- * o que já foi fechado (commissionClosureId) sai do "a pagar".
+ * Regras:
+ *  - só conta atendimento "concluído";
+ *  - atendimento de mensalista coberto pelo plano NÃO é receita (a receita é a mensalidade paga);
+ *  - comissão = valor de tabela x % do barbeiro, inclusive nos atendimentos cobertos pelo plano;
+ *  - o que já foi fechado (commissionClosureId) sai do "a pagar".
+ * subPayments: pagamentos de mensalidade do período [{amount, method, date}].
  */
-export function summarize({ appts, expenses, barbers, from, to }) {
+export function summarize({ appts, expenses, barbers, from, to, subPayments = [] }) {
   const done = appts.filter((a) => a.status === 'concluido');
-  const revenue = done.reduce((s, a) => s + Number(a.total || 0), 0);
+  const avulso = done.filter((a) => !a.coveredByPlan);
+  const covered = done.filter((a) => a.coveredByPlan);
+  const avulsoRevenue = avulso.reduce((s, a) => s + Number(a.total || 0), 0);
+  const subRevenue = subPayments.reduce((s, p) => s + Number(p.amount || 0), 0);
+  const revenue = avulsoRevenue + subRevenue;
   const count = done.length;
 
   const byMethod = {};
-  done.forEach((a) => { const m = a.payMethod || 'Não informado'; byMethod[m] = (byMethod[m] || 0) + Number(a.total || 0); });
+  avulso.forEach((a) => { const m = a.payMethod || 'Não informado'; byMethod[m] = (byMethod[m] || 0) + Number(a.total || 0); });
+  subPayments.forEach((p) => { const m = `${p.method || 'Não informado'} (mensalidade)`; byMethod[m] = (byMethod[m] || 0) + Number(p.amount || 0); });
 
   const byDay = {};
   for (let d = fromKey(from), n = 0; key(d) <= to && n < 62; d = addDays(d, 1), n++) byDay[key(d)] = 0;
-  done.forEach((a) => { if (byDay[a.date] !== undefined) byDay[a.date] += Number(a.total || 0); });
+  avulso.forEach((a) => { if (byDay[a.date] !== undefined) byDay[a.date] += Number(a.total || 0); });
+  subPayments.forEach((p) => { if (byDay[p.date] !== undefined) byDay[p.date] += Number(p.amount || 0); });
 
   const expenseTotal = expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
 
@@ -45,7 +55,8 @@ export function summarize({ appts, expenses, barbers, from, to }) {
   const commissionTotal = commissions.reduce((s, c) => s + c.commission, 0);
 
   return {
-    revenue, count, avgTicket: count ? revenue / count : 0, byMethod, byDay,
+    revenue, avulsoRevenue, subRevenue, count, avulsoCount: avulso.length, coveredCount: covered.length,
+    avgTicket: avulso.length ? avulsoRevenue / avulso.length : 0, byMethod, byDay,
     expenseTotal, commissions, commissionTotal,
     result: revenue - expenseTotal - commissionTotal,
   };

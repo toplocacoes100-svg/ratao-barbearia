@@ -7,9 +7,11 @@ import { useToast } from '../../context/ToastContext.jsx';
 import { useDays } from '../../hooks/useDays.js';
 import { slotsFor } from '../../lib/availability.js';
 import { cancelAppointment, changeTotal, createAppointment, createBlock, deleteAppointment, markNoShow, removeBlock, setStatus } from '../../lib/bookings.js';
-import { PAY_METHODS } from '../../lib/finance.js';
 import { addDays, brl, brl0, dayLabel, DAYS, fromKey, hm, key, MONTHS, nowMin, todayKey, weekDates, whatsappUrl } from '../../lib/time.js';
 import { Avatar, Modal, Pill, STATUS } from '../../components/ui.jsx';
+import PayDialog from '../../components/PayDialog.jsx';
+import ShareCardDialog from '../../components/ShareCardDialog.jsx';
+import { useSubscriptions } from '../../hooks/useSubscriptions.js';
 
 const PPM = 1.4; // pixels por minuto
 
@@ -17,6 +19,7 @@ export default function Agenda() {
   const { user, profile } = useAuth();
   const { barbers, services, settings } = useCatalog();
   const toast = useToast();
+  const subs = useSubscriptions();
   const isAdmin = profile.role === 'admin';
   const myBid = isAdmin ? null : profile.barberId;
 
@@ -62,7 +65,7 @@ export default function Agenda() {
   const d = fromKey(date);
   const by = { byUid: user.uid, byName: profile.name };
   const current = dialog?.type === 'appt' ? appts.find((a) => a.id === dialog.id) : null;
-  const target = dialog && ['pay', 'value'].includes(dialog.type) ? appts.find((a) => a.id === dialog.id) : null;
+  const target = dialog && ['pay', 'value', 'card'].includes(dialog.type) ? appts.find((a) => a.id === dialog.id) : null;
 
   const run = async (fn, ok) => {
     try { await fn(); toast(ok); } catch (e) { console.error(e); toast('Não foi possível concluir a ação'); }
@@ -150,6 +153,7 @@ export default function Agenda() {
             {current.clientPhone && <><dt>WhatsApp</dt><dd>{current.clientPhone}</dd></>}
           </dl>
           <div className="linkrow">
+            <button className="btn sm" onClick={() => setDialog({ type: 'card', id: current.id })}>Enviar banner</button>
             {current.clientPhone && (
               <a className="btn sm ghost" target="_blank" rel="noopener noreferrer" href={whatsappUrl(current.clientPhone, `Oi, ${current.clientName.split(' ')[0]}! Passando pra lembrar do seu horário ${dayLabel(current.date).toLowerCase()} às ${hm(current.start)} com ${current.barberName.split(' ')[0]} na Barbearia do Ratão. Confirma?`)}>Lembrar no WhatsApp</a>
             )}
@@ -159,16 +163,9 @@ export default function Agenda() {
         </Modal>
       )}
 
-      {dialog?.type === 'pay' && target && (
-        <Modal title="Como foi o pagamento?" onClose={() => setDialog(null)} actions={[{ label: 'Voltar', kind: 'ghost', onClick: () => setDialog(null) }]}>
-          <p>{target.clientName} deve <b>{brl(target.total)}</b> por {target.serviceNames.join(' + ')}.</p>
-          <div className="paygrid">
-            {PAY_METHODS.map((m) => (
-              <button key={m} className="btn ghost" onClick={() => run(() => setStatus(target, 'concluido', { payMethod: m }), 'Atendimento concluído')}>{m}</button>
-            ))}
-          </div>
-        </Modal>
-      )}
+      {dialog?.type === 'card' && target && <ShareCardDialog ap={target} barber={barbers.find((b) => b.id === target.barberId)} settings={settings} chat={target.clientPhone ? { phone: target.clientPhone } : null} toast={toast} onClose={() => setDialog(null)} />}
+
+      {dialog?.type === 'pay' && target && <PayDialog ap={target} subs={subs} toast={toast} onClose={() => setDialog(null)} />}
 
       {dialog?.type === 'value' && target && <ValueDialog ap={target} by={by} toast={toast} onClose={() => setDialog(null)} />}
 

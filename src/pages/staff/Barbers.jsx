@@ -21,11 +21,11 @@ export default function Barbers() {
   const offLabel = (b) => (b.off?.length ? WD.filter(([d]) => b.off.includes(d)).map(([, l]) => l).join(', ') : 'nenhuma');
 
   const blank = () => ({
-    name: '', short: '', spec: '', color: '#D4A94F', photo: null, hasLunch: true, lunchStart: 720, lunchEnd: 780,
+    name: '', short: '', phone: '', spec: '', color: '#D4A94F', photo: null, hasLunch: true, lunchStart: 720, lunchEnd: 780,
     off: [], commissionService: 50, commissionProduct: 15, active: true, serviceIds: allServices.map((s) => s.id),
   });
   const edit = (b) => setForm({
-    id: b.id, name: b.name, short: b.short || '', spec: b.spec || '', color: b.color || '#D4A94F', photo: b.photo || null,
+    id: b.id, name: b.name, short: b.short || '', phone: b.phone || '', spec: b.spec || '', color: b.color || '#D4A94F', photo: b.photo || null,
     hasLunch: Boolean(b.lunch), lunchStart: b.lunch?.start ?? 720, lunchEnd: b.lunch?.end ?? 780, off: b.off || [],
     commissionService: b.commissionService ?? 50, commissionProduct: b.commissionProduct ?? 15, active: b.active !== false,
     serviceIds: allServices.filter((s) => s.barberIds?.includes(b.id)).map((s) => s.id),
@@ -39,7 +39,7 @@ export default function Barbers() {
       const ref = f.id ? doc(db, 'barbers', f.id) : doc(collection(db, 'barbers'));
       const b = writeBatch(db);
       b.set(ref, {
-        name: f.name.trim(), short: (f.short || f.name).trim().split(' ')[0], spec: f.spec.trim(), color: f.color, photo: f.photo || null,
+        name: f.name.trim(), short: (f.short || f.name).trim().split(' ')[0], phone: f.phone.trim(), spec: f.spec.trim(), color: f.color, photo: f.photo || null,
         lunch: f.hasLunch ? { start: f.lunchStart, end: f.lunchEnd } : null, off: f.off,
         commissionService: Number(f.commissionService) || 0, commissionProduct: Number(f.commissionProduct) || 0, active: f.active,
       }, { merge: true });
@@ -127,6 +127,7 @@ export default function Barbers() {
           </div>
           <label className="field">Nome completo<input value={form.name} onChange={setF('name')} /></label>
           <label className="field">Como o cliente vê (apelido)<input value={form.short} onChange={setF('short')} placeholder="Ex.: Caio" /></label>
+          <label className="field">WhatsApp do barbeiro (para o cliente avisá-lo)<input type="tel" value={form.phone} onChange={setF('phone')} placeholder="(11) 90000-0000" /></label>
           <label className="field">Especialidade<input value={form.spec} onChange={setF('spec')} placeholder="Ex.: Degradê e navalha" /></label>
           <label className="field">Cor na agenda<input type="color" value={form.color} onChange={setF('color')} /></label>
           <div className="field">Folgas (dias da semana)

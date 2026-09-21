@@ -2,6 +2,9 @@
 // Um dia sem horário (null) fica fechado. O dono edita tudo em Configurações.
 export const DEFAULT_SETTINGS = {
   name: 'Barbearia do Ratão',
+  address: '',      // aparece no banner e nas mensagens
+  phone: '',        // WhatsApp da barbearia
+  instagram: '',
   buffer: 5,        // intervalo entre atendimentos (min)
   minAdvance: 60,   // antecedência mínima para agendar (min)
   cancelMin: 120,   // antecedência mínima para cancelar sem ocorrência (min)

@@ -12,7 +12,9 @@ export default function StaffLayout() {
         <div className="brand"><Logo /><span>Ratão</span></div>
         <nav className="nav" aria-label="Menu">
           <NavLink to="/painel/agenda" className={cls}>Agenda</NavLink>
+          <NavLink to="/barbeiro" className={cls}>Modo barbeiro</NavLink>
           {admin && <NavLink to="/painel/financeiro" className={cls}>Financeiro</NavLink>}
+          {admin && <NavLink to="/painel/mensalistas" className={cls}>Mensalistas</NavLink>}
           {admin && <NavLink to="/painel/servicos" className={cls}>Serviços</NavLink>}
           {admin && <NavLink to="/painel/barbeiros" className={cls}>Barbeiros</NavLink>}
           {admin && <NavLink to="/painel/equipe" className={cls}>Acessos</NavLink>}

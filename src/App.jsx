@@ -17,6 +17,8 @@ import Settings from './pages/staff/Settings.jsx';
 import Barbers from './pages/staff/Barbers.jsx';
 import Services from './pages/staff/Services.jsx';
 import Finance from './pages/staff/Finance.jsx';
+import Subscribers from './pages/staff/Subscribers.jsx';
+import BarberDay from './pages/barber/BarberDay.jsx';
 
 // Bloqueia quem não está logado ou não tem o perfil exigido
 function Guard({ roles }) {
@@ -40,7 +42,7 @@ function Root() {
   if (loading) return <Splash />;
   if (!user) return <Navigate to="/login" replace />;
   if (!profile) return <Splash text="Finalizando seu cadastro..." />;
-  return <Navigate to={profile.role === 'client' ? '/app' : '/painel'} replace />;
+  return <Navigate to={profile.role === 'client' ? '/app' : profile.role === 'barber' ? '/barbeiro' : '/painel'} replace />;
 }
 
 function MissingConfig() {
@@ -71,12 +73,14 @@ export default function App() {
                 </Route>
               </Route>
               <Route element={<Guard roles={['barber', 'admin']} />}>
+                <Route path="/barbeiro" element={<BarberDay />} />
                 <Route path="/painel" element={<StaffLayout />}>
                   <Route index element={<Navigate to="agenda" replace />} />
                   <Route path="agenda" element={<Agenda />} />
                   <Route element={<Guard roles={['admin']} />}>
                     <Route path="equipe" element={<Team />} />
                     <Route path="financeiro" element={<Finance />} />
+                    <Route path="mensalistas" element={<Subscribers />} />
                     <Route path="servicos" element={<Services />} />
                     <Route path="barbeiros" element={<Barbers />} />
                     <Route path="configuracoes" element={<Settings />} />

@@ -33,7 +33,7 @@ function General() {
   const sKey = JSON.stringify(settings);
   useEffect(() => {
     setHours(Object.fromEntries(WEEK.map(([d]) => [d, settings.hours?.[d] ? { ...settings.hours[d] } : null])));
-    setRules({ name: settings.name, buffer: settings.buffer, minAdvance: settings.minAdvance, cancelH: settings.cancelMin / 60, step: settings.step });
+    setRules({ name: settings.name, address: settings.address || '', phone: settings.phone || '', instagram: settings.instagram || '', buffer: settings.buffer, minAdvance: settings.minAdvance, cancelH: settings.cancelMin / 60, step: settings.step });
   }, [sKey]);
 
   const setDay = (d, patch) => setHours((h) => ({ ...h, [d]: patch }));
@@ -46,6 +46,9 @@ function General() {
     try {
       await setDoc(doc(db, 'settings', 'shop'), {
         name: rules.name.trim() || 'Barbearia do Ratão',
+        address: (rules.address || '').trim(),
+        phone: (rules.phone || '').trim(),
+        instagram: (rules.instagram || '').trim().replace(/^@/, ''),
         buffer: Number(rules.buffer) || 0,
         minAdvance: Number(rules.minAdvance) || 0,
         cancelMin: Math.round((Number(rules.cancelH) || 0) * 60),
@@ -140,6 +143,9 @@ function General() {
         <h3>Regras</h3>
         <div className="formgrid">
           <label className="field">Nome da barbearia<input value={rules.name || ''} onChange={(e) => setRules({ ...rules, name: e.target.value })} /></label>
+          <label className="field">Endereço (aparece no banner)<input value={rules.address || ''} onChange={(e) => setRules({ ...rules, address: e.target.value })} placeholder="Rua, número, bairro, cidade" /></label>
+          <label className="field">WhatsApp da barbearia (aparece no banner)<input type="tel" value={rules.phone || ''} onChange={(e) => setRules({ ...rules, phone: e.target.value })} placeholder="(11) 90000-0000" /></label>
+          <label className="field">Instagram (sem @)<input value={rules.instagram || ''} onChange={(e) => setRules({ ...rules, instagram: e.target.value })} placeholder="barbeariadoratao" /></label>
           <label className="field">Intervalo entre atendimentos (min)<input type="number" min="0" step="5" value={rules.buffer ?? ''} onChange={(e) => setRules({ ...rules, buffer: e.target.value })} /></label>
           <label className="field">Antecedência mínima para agendar (min)<input type="number" min="0" step="15" value={rules.minAdvance ?? ''} onChange={(e) => setRules({ ...rules, minAdvance: e.target.value })} /></label>
           <label className="field">Cancelar sem ocorrência até (horas antes)<input type="number" min="0" step="0.5" value={rules.cancelH ?? ''} onChange={(e) => setRules({ ...rules, cancelH: e.target.value })} /></label>
