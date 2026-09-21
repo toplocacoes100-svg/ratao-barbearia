@@ -376,3 +376,23 @@
   .cardprev { width: 100%; max-height: 52vh; object-fit: contain; border-radius: 12px; border: 1px solid var(--line); background: #151417; display: block; }
   .cardprev.empty { min-height: 180px; display: grid; place-items: center; color: var(--muted); text-align: center; padding: 12px; }
 }
+
+@layer components {
+  /* ---------- marca em imagem: login com o emblema e início do cliente com o letreiro ---------- */
+  .force-dark { --bg: #000; --surface: #17161a; --surface2: #26252a; --ink: #F1EBDD; --muted: #A09B8F; --line: #3A383F; --accent: #D4A94F; --accent-ink: #1A1408; --accent-text: #E3BE6B; --danger: #F0705B; color-scheme: dark; color: var(--ink); }
+  body:has(.loginpage) { background: #000; }
+  .loginpage { min-height: 100vh; background: #000; display: grid; place-items: center; }
+  .loginwrap { width: 100%; max-width: 1040px; padding: 20px 20px 48px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .loginart { width: min(86vw, 440px); height: auto; display: block; }
+  .loginform { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 14px; }
+  @media (min-width: 900px) {
+    .loginwrap { flex-direction: row; justify-content: center; gap: 56px; }
+    .loginart { width: min(44vw, 520px); flex: none; }
+    .loginform { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 26px; }
+  }
+  .heroart { position: relative; margin-top: 12px; aspect-ratio: 1000 / 915; border-radius: 20px; overflow: hidden; background: #000; }
+  .heroart img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.2s ease; }
+  .heroart img.brand { object-fit: contain; }
+  .heroart img.on { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .heroart img { transition: none; } }
+}
