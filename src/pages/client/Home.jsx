@@ -7,11 +7,10 @@ import { usePhotos } from '../../hooks/usePhotos.js';
 import { nextFree } from '../../lib/availability.js';
 import { addDays, dayLabel, hm, key, minsUntil, startOfToday } from '../../lib/time.js';
 import { Avatar, Ticket } from '../../components/ui.jsx';
-import BrandImg from '../../components/BrandImg.jsx';
 
 // Letreiro da marca (imagem) no topo. Se o dono publicou fotos em Configurações, elas entram depois dele
 // e trocam sozinhas (e param se o aparelho pedir menos movimento).
-const BRAND = { id: 'brand', brand: true };
+const BRAND = { id: 'brand', src: '/img/ratao-letreiro.webp', brand: true };
 function HeroArt({ photos }) {
   const slides = useMemo(() => [BRAND, ...photos.map((p) => ({ id: p.id, src: p.dataUrl }))], [photos]);
   const [i, setI] = useState(0);
@@ -22,12 +21,7 @@ function HeroArt({ photos }) {
   }, [slides.length]);
   return (
     <section className="heroart" aria-label="Barbearia do Ratão">
-      {slides.map((s, k) => {
-        const cls = `${s.brand ? 'brand ' : ''}${k === i % slides.length ? 'on' : ''}`;
-        return s.brand
-          ? <BrandImg key={s.id} name="letreiro" alt="Barbearia do Ratão" className={cls} />
-          : <img key={s.id} src={s.src} alt="" className={cls} />;
-      })}
+      {slides.map((s, k) => <img key={s.id} src={s.src} alt={s.brand ? 'Barbearia do Ratão' : ''} className={`${s.brand ? 'brand ' : ''}${k === i % slides.length ? 'on' : ''}`} />)}
     </section>
   );
 }

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Splash } from '../components/ui.jsx';
-import BrandImg from '../components/BrandImg.jsx';
 
 const MSG = {
   'auth/invalid-credential': 'E-mail ou senha incorretos.',
@@ -47,7 +46,7 @@ export default function Login() {
   return (
     <main className="loginpage force-dark">
       <div className="loginwrap">
-        <BrandImg name="emblema" className="loginart" alt="Ratão Barbearia: estilo, atitude e confiança" width="900" height="963" fetchPriority="high" />
+        <img className="loginart" src="/img/ratao-emblema.webp" alt="Ratão Barbearia: estilo, atitude e confiança" width="900" height="963" fetchPriority="high" />
         <div className="loginform">
           <div className="pills" role="group" aria-label="Entrar ou criar conta">
             <button className="pillbtn" aria-pressed={mode === 'entrar'} onClick={() => setMode('entrar')}>Entrar</button>
