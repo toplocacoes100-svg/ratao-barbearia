@@ -6,20 +6,29 @@ import { useDays } from '../../hooks/useDays.js';
 import { usePhotos } from '../../hooks/usePhotos.js';
 import { nextFree } from '../../lib/availability.js';
 import { addDays, dayLabel, hm, key, minsUntil, startOfToday } from '../../lib/time.js';
-import { Avatar, Logo, Ticket } from '../../components/ui.jsx';
+import { Avatar, Ticket } from '../../components/ui.jsx';
+import BrandImg from '../../components/BrandImg.jsx';
 
-// Fotos do fundo trocam sozinhas (e param se o aparelho pedir menos movimento)
-function HeroBg({ photos }) {
+// Letreiro da marca (imagem) no topo. Se o dono publicou fotos em Configurações, elas entram depois dele
+// e trocam sozinhas (e param se o aparelho pedir menos movimento).
+const BRAND = { id: 'brand', brand: true };
+function HeroArt({ photos }) {
+  const slides = useMemo(() => [BRAND, ...photos.map((p) => ({ id: p.id, src: p.dataUrl }))], [photos]);
   const [i, setI] = useState(0);
   useEffect(() => {
-    if (photos.length < 2 || matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
-    const t = setInterval(() => setI((x) => (x + 1) % photos.length), 5000);
+    if (slides.length < 2 || matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+    const t = setInterval(() => setI((x) => (x + 1) % slides.length), 5000);
     return () => clearInterval(t);
-  }, [photos.length]);
+  }, [slides.length]);
   return (
-    <div className="hero-bg" aria-hidden="true">
-      {photos.map((p, k) => <img key={p.id} src={p.dataUrl} alt="" className={k === i % photos.length ? 'on' : ''} />)}
-    </div>
+    <section className="heroart" aria-label="Barbearia do Ratão">
+      {slides.map((s, k) => {
+        const cls = `${s.brand ? 'brand ' : ''}${k === i % slides.length ? 'on' : ''}`;
+        return s.brand
+          ? <BrandImg key={s.id} name="letreiro" alt="Barbearia do Ratão" className={cls} />
+          : <img key={s.id} src={s.src} alt="" className={cls} />;
+      })}
+    </section>
   );
 }
 
@@ -40,12 +49,7 @@ export default function Home() {
 
   return (
     <div className="screen">
-      <section className={`hero${photos.length ? ' has-photo' : ''}`}>
-        {photos.length > 0 && <HeroBg photos={photos} />}
-        <div className="hero-brand"><Logo size={34} /><span>Barbearia do</span></div>
-        <h1 className="wordmark">RATÃO</h1>
-        <p className="tag">Escolha, toque, marcou.</p>
-      </section>
+      <HeroArt photos={photos} />
 
       {nf && nb ? (
         <section className="slab">
