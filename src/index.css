@@ -400,9 +400,11 @@
   .heroart img.on { opacity: 1; }
   @media (min-width: 640px) { .heroart { max-height: 300px; } }
   @media (prefers-reduced-motion: reduce) { .heroart img { transition: none; } }
-  .herostack .slab.overlap { position: relative; z-index: 1; margin: -34px 14px 0; padding: 14px 16px; box-shadow: 0 16px 34px rgba(0,0,0,.4); }
-  .herostack .slab.overlap .big { font-size: clamp(40px, 14vw, 64px); margin: 2px 0 2px; }
-  .herostack .slab.overlap .row { margin-top: 10px; }
+  .herostack .slab.overlap { position: relative; z-index: 1; margin: -30px 14px 0; padding: 12px 14px; border-radius: 16px 16px 4px 16px; }
+  .herostack .slab.overlap p { font-size: 13px; }
+  .herostack .slab.overlap .big { font-size: clamp(30px, 9vw, 42px); margin: 0 0 2px; line-height: 1; }
+  .herostack .slab.overlap .row { margin-top: 8px; gap: 8px; }
+  .herostack .slab.overlap .btn { min-height: 40px; padding: 0 14px; font-size: 14px; }
   @media (min-width: 640px) { .herostack .slab.overlap { margin-left: 24px; margin-right: 24px; } }
 }
 
