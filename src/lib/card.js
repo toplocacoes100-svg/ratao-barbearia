@@ -1,6 +1,6 @@
 import QRCode from 'qrcode';
 import { CARD_H, CARD_W, drawCard } from './cardDraw.js';
-import { logoSrc } from './logo.js';
+import emblema from './brandEmblema.js';
 
 const loadImg = (src) => new Promise((resolve, reject) => {
   const img = new Image();
@@ -38,7 +38,7 @@ export async function makeAppointmentCard(data) {
   c.width = CARD_W; c.height = CARD_H;
   const ctx = c.getContext('2d');
   const [logo, photo, qr] = await Promise.all([
-    loadImg(logoSrc('#D4A94F', '#151417')),
+    loadImg(emblema),
     data.barber.photo ? loadImg(data.barber.photo).catch(() => null) : Promise.resolve(null),
     data.shop.site ? makeQr(data.shop.site).catch(() => null) : Promise.resolve(null),
   ]);

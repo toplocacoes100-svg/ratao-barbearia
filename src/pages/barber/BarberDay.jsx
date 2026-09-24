@@ -62,7 +62,7 @@ export default function BarberDay() {
     return { works, list: [...aps, ...gaps, ...extras].sort((a, b) => a.start - b.start || order[a.type] - order[b.type]) };
   }, [appts, blks, barber, date, settings, tick]);
 
-  if (!ready) return <div className="splash"><Logo size={56} /><p>Carregando...</p></div>;
+  if (!ready) return <div className="splash force-dark"><Logo size={72} /><p>Carregando...</p></div>;
 
   const by = { byUid: user.uid, byName: profile.name };
   const alive = appts.filter((a) => !['cancelado', 'faltou'].includes(a.status));

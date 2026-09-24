@@ -7,10 +7,11 @@ import { usePhotos } from '../../hooks/usePhotos.js';
 import { nextFree } from '../../lib/availability.js';
 import { addDays, dayLabel, hm, key, minsUntil, startOfToday } from '../../lib/time.js';
 import { Avatar, Ticket } from '../../components/ui.jsx';
+import BrandImg from '../../components/BrandImg.jsx';
 
 // Letreiro da marca (imagem) no topo. Se o dono publicou fotos em Configurações, elas entram depois dele
 // e trocam sozinhas (e param se o aparelho pedir menos movimento).
-const BRAND = { id: 'brand', src: '/img/ratao-letreiro.webp', brand: true };
+const BRAND = { id: 'brand', brand: true };
 function HeroArt({ photos }) {
   const slides = useMemo(() => [BRAND, ...photos.map((p) => ({ id: p.id, src: p.dataUrl }))], [photos]);
   const [i, setI] = useState(0);
@@ -21,7 +22,12 @@ function HeroArt({ photos }) {
   }, [slides.length]);
   return (
     <section className="heroart" aria-label="Barbearia do Ratão">
-      {slides.map((s, k) => <img key={s.id} src={s.src} alt={s.brand ? 'Barbearia do Ratão' : ''} className={`${s.brand ? 'brand ' : ''}${k === i % slides.length ? 'on' : ''}`} />)}
+      {slides.map((s, k) => {
+        const cls = `${s.brand ? 'brand ' : ''}${k === i % slides.length ? 'on' : ''}`;
+        return s.brand
+          ? <BrandImg key={s.id} name="letreiro" alt="Barbearia do Ratão" className={cls} />
+          : <img key={s.id} src={s.src} alt="" className={cls} />;
+      })}
     </section>
   );
 }
@@ -43,24 +49,25 @@ export default function Home() {
 
   return (
     <div className="screen">
-      <HeroArt photos={photos} />
-
-      {nf && nb ? (
-        <section className="slab">
-          <p>Próximo horário livre</p>
-          <div className="big">{hm(nf.start)}</div>
-          <p>{dayLabel(nf.dk)}, com {nb.short || nb.name}</p>
-          <div className="row">
-            <Link to="/app/agendar" className="btn dark">Agendar agora</Link>
-            {last && <button className="btn dark-ghost" onClick={repeat}>Repetir último</button>}
-          </div>
-        </section>
-      ) : (
-        <section className="slab">
-          <p>Vamos marcar seu horário</p>
-          <div className="row"><Link to="/app/agendar" className="btn dark">Agendar agora</Link></div>
-        </section>
-      )}
+      <div className="herostack">
+        <HeroArt photos={photos} />
+        {nf && nb ? (
+          <section className="slab overlap">
+            <p>Próximo horário livre</p>
+            <div className="big">{hm(nf.start)}</div>
+            <p>{dayLabel(nf.dk)}, com {nb.short || nb.name}</p>
+            <div className="row">
+              <Link to="/app/agendar" className="btn dark">Agendar agora</Link>
+              {last && <button className="btn dark-ghost" onClick={repeat}>Repetir último</button>}
+            </div>
+          </section>
+        ) : (
+          <section className="slab overlap">
+            <p>Vamos marcar seu horário</p>
+            <div className="row"><Link to="/app/agendar" className="btn dark">Agendar agora</Link></div>
+          </section>
+        )}
+      </div>
 
       {barbers.length > 0 && (
         <>

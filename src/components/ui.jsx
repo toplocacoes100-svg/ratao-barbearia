@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import BrandImg from './BrandImg.jsx';
 import { dayLabel, hm, brl } from '../lib/time.js';
 
 export const STATUS = {
@@ -11,16 +12,7 @@ export const STATUS = {
 };
 
 export function Logo({ size = 30 }) {
-  return (
-    <svg viewBox="0 0 48 48" width={size} height={size} aria-hidden="true">
-      <circle cx="11" cy="12" r="9" fill="var(--accent)" /><circle cx="37" cy="12" r="9" fill="var(--accent)" />
-      <circle cx="11" cy="12" r="4.5" fill="var(--bg)" /><circle cx="37" cy="12" r="4.5" fill="var(--bg)" />
-      <path d="M6 30c0-9.5 8-16 18-16s18 6.5 18 16c0 8.5-8 14-18 14S6 38.5 6 30z" fill="var(--accent)" />
-      <circle cx="17.5" cy="27" r="2.3" fill="var(--bg)" /><circle cx="30.5" cy="27" r="2.3" fill="var(--bg)" />
-      <circle cx="24" cy="34" r="2.6" fill="var(--bg)" />
-      <path d="M21.5 38c-3 2.5-7 2.5-9.5-.5M26.5 38c3 2.5 7 2.5 9.5-.5" fill="none" stroke="var(--bg)" strokeWidth="2.2" strokeLinecap="round" />
-    </svg>
-  );
+  return <BrandImg name="emblema" alt="" className="app-logo" style={{ width: size, height: size }} />;
 }
 
 // Barra de progresso em forma de poste de barbeiro
@@ -80,7 +72,7 @@ export function Modal({ title, onClose, children, actions = [] }) {
 }
 
 export const Splash = ({ text = 'Carregando...' }) => (
-  <div className="splash"><Logo size={56} /><p>{text}</p></div>
+  <div className="splash force-dark"><Logo size={72} /><p>{text}</p></div>
 );
 
 // Alternar claro/escuro (lembra a escolha neste aparelho)

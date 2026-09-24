@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import QRCode from 'qrcode';
+import emblema from '../../lib/brandEmblema.js';
 import { useToast } from '../../context/ToastContext.jsx';
-
-// Logo do rato com cores fixas (imagens soltas não enxergam as cores do tema do app)
-const logoSvg = (accent, hole) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><circle cx="11" cy="12" r="9" fill="${accent}"/><circle cx="37" cy="12" r="9" fill="${accent}"/><circle cx="11" cy="12" r="4.5" fill="${hole}"/><circle cx="37" cy="12" r="4.5" fill="${hole}"/><path d="M6 30c0-9.5 8-16 18-16s18 6.5 18 16c0 8.5-8 14-18 14S6 38.5 6 30z" fill="${accent}"/><circle cx="17.5" cy="27" r="2.3" fill="${hole}"/><circle cx="30.5" cy="27" r="2.3" fill="${hole}"/><circle cx="24" cy="34" r="2.6" fill="${hole}"/><path d="M21.5 38c-3 2.5-7 2.5-9.5-.5M26.5 38c3 2.5 7 2.5 9.5-.5" fill="none" stroke="${hole}" stroke-width="2.2" stroke-linecap="round"/></svg>`;
-const logoSrc = (accent, hole) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(logoSvg(accent, hole))}`;
 
 const loadImg = (src) => new Promise((resolve, reject) => { const i = new Image(); i.onload = () => resolve(i); i.onerror = reject; i.src = src; });
 
@@ -18,7 +15,7 @@ async function makeQr(url) {
     const w = c.width, r = w * 0.115;
     ctx.beginPath(); ctx.arc(w / 2, w / 2, r, 0, Math.PI * 2); ctx.fillStyle = '#151417'; ctx.fill();
     try {
-      const img = await loadImg(logoSrc('#D4A94F', '#151417'));
+      const img = await loadImg(emblema);
       const s = r * 1.55;
       ctx.drawImage(img, w / 2 - s / 2, w / 2 - s / 2, s, s);
     } catch { /* sem o logo o QR continua funcionando */ }
@@ -31,7 +28,7 @@ function Poster({ png, url }) {
     <div className="qrposter">
       <div className="qrbar stripes" />
       <div className="qrbody">
-        <img className="qrlogo" src={logoSrc('#B8892B', '#FFFFFF')} alt="" />
+        <img className="qrlogo" src={emblema} alt="" style={{ borderRadius: '50%' }} />
         <p className="qrsmall">Barbearia do</p>
         <h2 className="qrword">RATÃO</h2>
         <p className="qrlead">Agende seu horário pelo celular</p>

@@ -69,6 +69,7 @@
   .fine { font-size: 13px; color: var(--muted); }
   .empty { padding: 22px 16px; text-align: center; color: var(--muted); border: 1.5px dashed var(--line); border-radius: 12px; }
   .splash { min-height: 100vh; display: grid; place-content: center; justify-items: center; gap: 12px; color: var(--muted); }
+  .splash.force-dark { background: #000; }
   .warn { color: var(--danger); font-weight: 600; }
 
   /* ---------- poste de barbeiro ---------- */
@@ -390,9 +391,19 @@
     .loginart { width: min(44vw, 520px); flex: none; }
     .loginform { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 26px; }
   }
-  .heroart { position: relative; margin-top: 12px; aspect-ratio: 1000 / 915; border-radius: 20px; overflow: hidden; background: #000; }
+  /* pilha: arte + card flutuando por cima da base, para um visual mais editorial */
+  .herostack { position: relative; }
+  .heroart { position: relative; margin-top: 12px; aspect-ratio: 4 / 3; max-height: 300px; border-radius: 22px; overflow: hidden; background: #000; box-shadow: 0 18px 36px rgba(0,0,0,.32); }
+  .heroart::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,0) 55%); pointer-events: none; }
   .heroart img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.2s ease; }
-  .heroart img.brand { object-fit: contain; }
+  .heroart img.brand { object-fit: contain; padding: 6%; box-sizing: border-box; }
   .heroart img.on { opacity: 1; }
+  @media (min-width: 640px) { .heroart { max-height: 380px; } }
   @media (prefers-reduced-motion: reduce) { .heroart img { transition: none; } }
+  .herostack .slab.overlap { position: relative; z-index: 1; margin: -44px 14px 0; box-shadow: 0 16px 34px rgba(0,0,0,.4); }
+  @media (min-width: 640px) { .herostack .slab.overlap { margin-left: 24px; margin-right: 24px; } }
+}
+
+@layer components {
+  .app-logo { border-radius: 50%; object-fit: cover; display: block; flex: none; }
 }
