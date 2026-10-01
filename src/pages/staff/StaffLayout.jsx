@@ -17,6 +17,7 @@ export default function StaffLayout() {
           {admin && <NavLink to="/painel/mensalistas" className={cls}>Mensalistas</NavLink>}
           {admin && <NavLink to="/painel/servicos" className={cls}>Serviços</NavLink>}
           {admin && <NavLink to="/painel/barbeiros" className={cls}>Barbeiros</NavLink>}
+          {admin && <NavLink to="/painel/depoimentos" className={cls}>Depoimentos</NavLink>}
           {admin && <NavLink to="/painel/equipe" className={cls}>Acessos</NavLink>}
           {admin && <NavLink to="/painel/configuracoes" className={cls}>Configurações</NavLink>}
           <NavLink to="/app" className={cls}>Ver como cliente</NavLink>
