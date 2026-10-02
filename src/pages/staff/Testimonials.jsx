@@ -60,9 +60,12 @@ export default function Testimonials() {
         {pending.map((t) => (
           <div key={t.id} className="card" style={{ marginBottom: 10 }}>
             <div className="head-row" style={{ marginBottom: 4 }}>
-              <div>
-                <b>{t.name}</b> <small className="fine">para {t.barberName} · {fmtDate(t.createdAt)}</small>
-                <div style={{ color: 'var(--accent)' }}>{stars(t.rating)}</div>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                {t.photo && <img src={t.photo} alt="" style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', flex: 'none' }} />}
+                <div>
+                  <b>{t.name}</b> <small className="fine">para {t.barberName} · {fmtDate(t.createdAt)}</small>
+                  <div style={{ color: 'var(--accent)' }}>{stars(t.rating)}</div>
+                </div>
               </div>
               <div className="actions-cell">
                 <button className="btn sm" onClick={() => approve(t)}>Aprovar</button>
@@ -83,9 +86,12 @@ export default function Testimonials() {
         {approved.map((t) => (
           <div key={t.id} className="card" style={{ marginBottom: 10 }}>
             <div className="head-row" style={{ marginBottom: 4 }}>
-              <div>
-                <b>{t.name}</b> <small className="fine">para {t.barberName} · {fmtDate(t.createdAt)}</small>
-                <div style={{ color: 'var(--accent)' }}>{stars(t.rating)}</div>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                {t.photo && <img src={t.photo} alt="" style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', flex: 'none' }} />}
+                <div>
+                  <b>{t.name}</b> <small className="fine">para {t.barberName} · {fmtDate(t.createdAt)}</small>
+                  <div style={{ color: 'var(--accent)' }}>{stars(t.rating)}</div>
+                </div>
               </div>
               <button className="btn sm ghost" onClick={() => setConfirm({ item: t })}>Remover do site</button>
             </div>
